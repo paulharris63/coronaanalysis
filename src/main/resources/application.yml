@@ -1,0 +1,9 @@
+server:
+  port: 9099
+
+logging:
+  level:
+    ROOT: INFO
+    org.springframework.test.context.support.AbstractContextLoader: INFO
+    org.apache.commons.beanutils.converters.ArrayConverter: INFO
+    org.hibernate: WARN
