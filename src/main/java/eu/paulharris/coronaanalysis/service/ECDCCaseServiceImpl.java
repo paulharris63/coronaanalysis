@@ -2,10 +2,12 @@ package eu.paulharris.coronaanalysis.service;
 
 import eu.paulharris.coronaanalysis.domain.ECDCCountryDailySummaryByPosition;
 import eu.paulharris.coronaanalysis.exception.ECDCCountryNotFoundException;
+import eu.paulharris.coronaanalysis.exception.InvalidDateRangeException;
 import eu.paulharris.coronaanalysis.reader.ECDCCsvReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,9 +43,22 @@ public class ECDCCaseServiceImpl implements ECDCCaseService {
         return reader.getAllDataAsBeans().stream().filter(x -> countryName.equalsIgnoreCase(x.getGeoId())).mapToInt(ECDCCountryDailySummaryByPosition::getDeaths).sum();
     }
 
-    private void validate(String countryName) {
+    @Override
+    public Integer getTotalCasesByCountryAndDateRange(String countryName, LocalDate start, LocalDate end) {
+        validate(countryName);
+        validate(start, end);
+        return reader.getAllDataAsBeans().stream().filter(x -> countryName.equalsIgnoreCase(x.getGeoId())).filter(x -> !x.getDate().isBefore(start) && !x.getDate().isAfter(end)).mapToInt(ECDCCountryDailySummaryByPosition::getCases).sum();
+    }
+
+    private void validate(final String countryName) {
         if (!reader.getCountryNames().contains(countryName.toUpperCase())) {
             throw new ECDCCountryNotFoundException(countryName);
+        }
+    }
+
+    private void validate(final LocalDate start, final LocalDate end) {
+        if (start.isAfter(end)) {
+            throw new InvalidDateRangeException(start, end);
         }
     }
 
