@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
-public class ECDCCountryNotFoundException extends RuntimeException {
-
-    private String country;
+public class InvalidDateStringException extends RuntimeException {
+    private String start;
+    private String end;
 }
