@@ -10,7 +10,8 @@ public interface ECDCCaseService {
     List<ECDCCountryDailySummaryByPosition> getByCountry(String countryName);
     Integer getTotalCasesByCountry(String countryName);
 
-    Integer getTotalDeathsByCountry(String countryName);
+    Integer getTotalCasesByCountryAndWeekNumber(String countryName, Integer weekNumber);
 
+    Integer getTotalDeathsByCountry(String countryName);
     Integer getTotalCasesByCountryAndDateRange(String countryName, LocalDate start, LocalDate end);
 }

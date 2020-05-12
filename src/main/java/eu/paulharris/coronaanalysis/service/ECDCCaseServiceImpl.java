@@ -4,14 +4,18 @@ import eu.paulharris.coronaanalysis.domain.ECDCCountryDailySummaryByPosition;
 import eu.paulharris.coronaanalysis.exception.ECDCCountryNotFoundException;
 import eu.paulharris.coronaanalysis.exception.InvalidDateRangeException;
 import eu.paulharris.coronaanalysis.reader.ECDCCsvReader;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.temporal.ChronoField;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class ECDCCaseServiceImpl implements ECDCCaseService {
 
     private final ECDCCsvReader reader;
@@ -35,6 +39,14 @@ public class ECDCCaseServiceImpl implements ECDCCaseService {
     public Integer getTotalCasesByCountry(String countryName) {
         validate(countryName);
         return reader.getAllDataAsBeans().stream().filter(x -> countryName.equalsIgnoreCase(x.getGeoId())).mapToInt(ECDCCountryDailySummaryByPosition::getCases).sum();
+    }
+
+    @Override
+    public Integer getTotalCasesByCountryAndWeekNumber(String countryName, Integer weekNumber) {
+        LocalDate week = LocalDate.now().with(ChronoField.ALIGNED_WEEK_OF_YEAR, weekNumber - 1);
+        LocalDate start = week.with(DayOfWeek.MONDAY);
+        LocalDate end = start.plusDays(6);
+        return getTotalCasesByCountryAndDateRange(countryName, start, end);
     }
 
     @Override

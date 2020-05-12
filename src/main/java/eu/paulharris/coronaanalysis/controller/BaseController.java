@@ -6,5 +6,6 @@ public interface BaseController {
     String TOTAL_CASES_URL = BASE_URL + "/cases/total";
     String TOTAL_DEATHS_URL = BASE_URL + "/deaths/total";
     String TOTAL_CASES_PER_DATE_URL = BASE_URL + "/cases/daterange";
+    String TOTAL_CASES_PER_WEEK_URL = BASE_URL + "/cases/week";
 
 }
