@@ -11,8 +11,14 @@ import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalField;
+import java.time.temporal.WeekFields;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Slf4j
@@ -31,14 +37,14 @@ public class ECDCCaseServiceImpl implements ECDCCaseService {
             return reader.getAllDataAsBeans();
         } else {
             validate(countryName);
-            return reader.getAllDataAsBeans().stream().filter(x -> countryName.equalsIgnoreCase(x.getGeoId())).collect(Collectors.toList());
+            return getCountryStream(countryName).collect(Collectors.toList());
         }
     }
 
     @Override
     public Integer getTotalCasesByCountry(String countryName) {
         validate(countryName);
-        return reader.getAllDataAsBeans().stream().filter(x -> countryName.equalsIgnoreCase(x.getGeoId())).mapToInt(ECDCCountryDailySummaryByPosition::getCases).sum();
+        return getCountryStream(countryName).mapToInt(ECDCCountryDailySummaryByPosition::getCases).sum();
     }
 
     @Override
@@ -52,14 +58,40 @@ public class ECDCCaseServiceImpl implements ECDCCaseService {
     @Override
     public Integer getTotalDeathsByCountry(String countryName) {
         validate(countryName);
-        return reader.getAllDataAsBeans().stream().filter(x -> countryName.equalsIgnoreCase(x.getGeoId())).mapToInt(ECDCCountryDailySummaryByPosition::getDeaths).sum();
+        return getCountryStream(countryName).mapToInt(ECDCCountryDailySummaryByPosition::getDeaths).sum();
     }
 
     @Override
     public Integer getTotalCasesByCountryAndDateRange(String countryName, LocalDate start, LocalDate end) {
         validate(countryName);
         validate(start, end);
-        return reader.getAllDataAsBeans().stream().filter(x -> countryName.equalsIgnoreCase(x.getGeoId())).filter(x -> !x.getDate().isBefore(start) && !x.getDate().isAfter(end)).mapToInt(ECDCCountryDailySummaryByPosition::getCases).sum();
+        return getCountryStream(countryName).filter(x -> !x.getDate().isBefore(start) && !x.getDate().isAfter(end)).mapToInt(ECDCCountryDailySummaryByPosition::getCases).sum();
+    }
+
+    private Stream<ECDCCountryDailySummaryByPosition> getCountryStream(String countryName) {
+        return reader.getAllDataAsBeans().stream().filter(x -> countryName.equalsIgnoreCase(x.getGeoId()));
+    }
+
+    @Override
+    public Map<Integer, Long> getCasesPerWeek(String countryName) {
+        Function<ECDCCountryDailySummaryByPosition, Integer> getWeekNumber = this::getWeekOfYearFromDate;
+        return getCountryStream(countryName).collect(Collectors.groupingBy(getWeekNumber, Collectors.summingLong(ECDCCountryDailySummaryByPosition::getCases)));
+    }
+
+    @Override
+    public Map<Integer, Long> getDeathsPerWeek(String countryName) {
+        Function<ECDCCountryDailySummaryByPosition, Integer> getWeekNumber = this::getWeekOfYearFromDate;
+        return getCountryStream(countryName).collect(Collectors.groupingBy(getWeekNumber, Collectors.summingLong(ECDCCountryDailySummaryByPosition::getDeaths)));
+    }
+
+    @Override
+    public Map<Integer, Integer> getCasesPerDay(String countryName) {
+        return getCountryStream(countryName).collect(Collectors.toMap(x -> x.getDate().getDayOfYear(), ECDCCountryDailySummaryByPosition::getCases));
+    }
+
+    private Integer getWeekOfYearFromDate(ECDCCountryDailySummaryByPosition dailyData) {
+        TemporalField woy = WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear();
+        return dailyData.getDate().get(woy);
     }
 
     private void validate(final String countryName) {

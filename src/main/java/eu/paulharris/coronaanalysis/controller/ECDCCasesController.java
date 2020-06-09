@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -57,6 +58,21 @@ public class ECDCCasesController implements BaseController {
     @RequestMapping(path = TOTAL_DEATHS_URL + "/{country}", method = RequestMethod.GET)
     ResponseEntity<Integer> getTotalDeathsByCountry(@PathVariable final String country) {
         return new ResponseEntity<>(casesService.getTotalDeathsByCountry(country), new HttpHeaders(), HttpStatus.OK);
+    }
+
+    @RequestMapping(path = TOTAL_CASES_PER_WEEK_URL + "/{country}", method = RequestMethod.GET)
+    ResponseEntity<Map<Integer, Long>> getTotalCasesPerWeekByCountry(@PathVariable final String country) {
+        return new ResponseEntity<>(casesService.getCasesPerWeek(country), new HttpHeaders(), HttpStatus.OK);
+    }
+
+    @RequestMapping(path = TOTAL_DEATHS_PER_WEEK_URL + "/{country}", method = RequestMethod.GET)
+    ResponseEntity<Map<Integer, Long>> getTotalDeathsPerWeekByCountry(@PathVariable final String country) {
+        return new ResponseEntity<>(casesService.getDeathsPerWeek(country), new HttpHeaders(), HttpStatus.OK);
+    }
+
+    @RequestMapping(path = TOTAL_CASES_PER_DAY_URL + "/{country}", method = RequestMethod.GET)
+    ResponseEntity<Map<Integer, Integer>> getTotalCasesPerDayByCountry(@PathVariable final String country) {
+        return new ResponseEntity<>(casesService.getCasesPerDay(country), new HttpHeaders(), HttpStatus.OK);
     }
 
     private LocalDate convertFromString(final String dateString) {
